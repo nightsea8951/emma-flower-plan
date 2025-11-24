@@ -1,0 +1,378 @@
+<meta charset="UTF-8">
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<style>
+	/* 藍調沉穩風 Blue & Calm Style */
+	
+	:root {
+		--main-bg-color: #f4f7f9; --container-bg-color: #ffffff; --primary-color: #2c3e50;/* 藍調主色 - 深海藍 */
+		--secondary-color: #3498db;/* 點綴色 - 天空藍 */
+		--text-color: #333333; --border-color: #bdc3c7; --accent-light: #ecf0f1; --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
+	/* 重置和基礎樣式 */
+	
+	body {
+		font-family: var(--font-family); line-height: 1.8; color: var(--text-color); background-color: var(--main-bg-color); padding: 20px;
+	}
+	
+	.container {
+		max-width: 900px; margin: 0 auto; background-color: var(--container-bg-color); padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	}
+	
+	h1 {
+		color: var(--primary-color); text-align: center; border-bottom: 3px solid var(--secondary-color); padding-bottom: 10px; margin-bottom: 30px;
+	}
+	/*
+         * 展開收合 (Accordion) 核心 CSS
+         * 利用 input:checked + label + content 結構實現
+        */
+	
+	.slide-section {
+		margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;
+		/* 修正：相對定位，確保內容和標題在正確位置 */
+		position: relative;
+	}
+	/* 隱藏用於控制的 checkbox */
+	
+	.slide-checkbox {
+		position: absolute; opacity: 0; pointer-events: none;/* 讓其不佔據空間，但能被 label 觸發 */
+	}
+	/* 標題 (Label) 樣式 - 作為可點擊的按鈕 */
+	
+	.slide-header {
+		background-color: var(--primary-color); color: white; padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 1.2em; font-weight: bold; transition: background-color 0.3s;
+	}
+	/* 箭頭/圖標樣式 */
+	
+	.slide-header .toggle-icon {
+		font-size: 1.5em; margin-left: 10px; transition: transform 0.3s; transform: rotate(0deg);/* 預設向右 (收合) */
+	}
+	/* 內容區塊 - 預設隱藏 (高度為 0) */
+	
+	.slide-content {
+		max-height: 0;/* 核心收合機制 */
+		overflow: hidden; transition: max-height 0.5s ease-in-out, padding 0.5s; padding: 0 20px; background-color: var(--container-bg-color); border-top: 1px solid var(--border-color);
+	}
+	/* 當 checkbox 被選中時 (展開狀態) */
+	
+	.slide-checkbox:checked + .slide-header {
+		background-color: var(--primary-color);
+	}
+	/* 當 checkbox 被選中時：內容區展開 */
+	
+	.slide-checkbox:checked + .slide-header + .slide-content {
+		max-height: 1000px;/* 給一個足夠大的高度值來展開內容 */
+		padding: 20px;/* 展開後恢復內邊距 */
+		border-top-color: transparent;
+	}
+	/* 當 checkbox 被選中時：圖標旋轉 (向下或垂直) */
+	
+	.slide-checkbox:checked + .slide-header .toggle-icon {
+		transform: rotate(90deg);
+	}
+	/* 內容樣式 */
+	
+	h2 {
+		color: var(--secondary-color); border-left: 5px solid var(--secondary-color); padding-left: 10px; margin-top: 20px;
+	}
+	
+	ul {
+		list-style: none; padding-left: 0;
+	}
+	
+	ul li {
+		margin-bottom: 10px; padding-left: 20px; position: relative;
+	}
+	
+	ul li::before {
+		content: '💠'; color: var(--secondary-color); position: absolute; left: 0;
+	}
+	
+	table {
+		width: 100%; border-collapse: collapse; margin: 15px 0; background-color: var(--accent-light); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+	}
+	
+	th,
+	td {
+		border: 1px solid var(--border-color); padding: 12px; text-align: left;
+	}
+	
+	th {
+		background-color: var(--secondary-color); color: white; font-weight: bold; text-transform: uppercase;
+	}
+	
+	tr:nth-child(even) {
+		background-color: #f9f9f9;
+	}
+	
+	.highlight-text {
+		color: var(--secondary-color); font-weight: bold;
+	}
+	
+	.summary-box {
+		background-color: #ecf0f1; padding: 20px; border-radius: 6px; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--primary-color); margin-top: 30px; border: 2px dashed var(--secondary-color);
+	}
+
+</style>
+
+
+
+<div class="container">
+
+	<h1>無人花店完整營運企劃書 | Emma Chen</h1>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide1" class="slide-checkbox">
+		<label for="slide1" class="slide-header">
+			1：核⼼戰略與定位 (The Core Strategy)
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>💡 策略願景</h2>
+
+			<ul>
+				<li>不賣花，賣「被愛的儀式」</li>
+			</ul>
+
+			<h2>🎯 品牌定位</h2>
+
+			<ul>
+				<li>24 ⼩時無⼈化、**⾼質感**、科技精品花禮站。</li>
+			</ul>
+
+			<h2>核⼼差異化</h2>
+
+			<ul>
+				<li>**⾼利潤：** 主推永⽣花/乾燥花，降低鮮花損耗風險。</li>
+				<li>**⾼效率：** 全⾃動結帳，滿⾜救急與非營業時段需求。</li>
+				<li>**⾼流量：** 透過視覺與文案，將店鋪變成 <span class="highlight-text">IG 打卡點</span>。</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide2" class="slide-checkbox">
+		<label for="slide2" class="slide-header">
+			2：產品架構與定價模型
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>A. 商品線配置 (混合模式最穩定)</h2>
+
+			<table>
+				<thead>
+					<tr>
+						<th>產品類型</th>
+						<th>功能定位</th>
+						<th>建議價格帶</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>鮮花⼩束</td>
+						<td>吸引客流，每⽇剛需</td>
+						<td>$199 - $399 (低單價)</td>
+					</tr>
+					<tr>
+						<td>永⽣/香皂/乾燥花/娃娃花</td>
+						<td>賺取⽑利 (60-75%)，不怕壞</td>
+						<td>$899 - $1599 (中⾼單價)</td>
+					</tr>
+					<tr>
+						<td>節慶限定花盒/⼤客製花束</td>
+						<td>拉⾼客單價，預購制</td>
+						<td>$1499 - $2500 (⾼單價)</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2>B. 價格策略 (看了就買的⼼理學)</h2>
+
+			<ul>
+				<li>無⼈店缺乏說服⼒，價格必須「直覺化」。</li>
+				<li>主⼒精品款建議使⽤<span class="highlight-text">整數標價</span>（如 $600、$1300），營造質感氛圍。</li>
+				<li>低單價維持 <span class="highlight-text">$x99 尾數</span>，吸引衝動購買。</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide3" class="slide-checkbox">
+		<label for="slide3" class="slide-header">
+			3：地點與硬體配置 (The Setup)
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>A. 關鍵選址標準 (⼈流 &gt; 租⾦)</h2>
+
+			<ul>
+				<li>地點優先順序： 捷運出⼝、醫院附近、咖啡店聚集區、學⽣區。</li>
+				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+				<li>空間要求： 2&ndash;6 坪即可，重點是「醒⽬性」與「⼈流」。</li>
+				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+				<li>租⾦⽬標： 鎖定在 $15,000 &ndash; $30,000/⽉。</li>
+			</ul>
+
+			<h2>B. 無⼈店必備硬體 (⼀次性投資 $10&ndash;$20萬)</h2>
+
+			<table>
+				<thead>
+					<tr>
+						<th>設備項⽬</th>
+						<th>功能⽬的</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>智慧⾨禁</td>
+						<td>**實名制管制**（Line 綁定），防盜第⼀線。</td>
+					</tr>
+					<tr>
+						<td>多⾓度監視器</td>
+						<td>店內外多點覆蓋，監控盜損率。</td>
+					</tr>
+					<tr>
+						<td>POS / ⾃助結帳</td>
+						<td>⽀援多元⽀付（LINE Pay/信⽤卡/街⼝）。</td>
+					</tr>
+					<tr>
+						<td>防盜系統</td>
+						<td>必要的安全投資，降低 8&ndash;12% 盜損風險。</td>
+					</tr>
+					<tr>
+						<td>恆溫空調/除濕</td>
+						<td><span class="highlight-text">乾燥花保鮮關鍵</span>。</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide4" class="slide-checkbox">
+		<label for="slide4" class="slide-header">
+			4：供應鏈與營運邏輯 (Maintenance Focus)
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>A. 供應鏈組合</h2>
+
+			<ul>
+				<li>乾燥/永⽣花： 內湖花市（穩定主⼒） + 專業中盤配送。</li>
+				<li>永⽣/香皂/娃娃花： 淘寶批貨（低成本、多款式），搭配「換緞帶、加 LOGO、⾃製⼩卡」進⾏<span class="highlight-text">⼆次品牌化</span>。</li>
+			</ul>
+
+			<h2>B. 營運維護 SOP (比誰補得快、擺得美)</h2>
+
+			<ul>
+				<li>補貨頻率： 鮮花每天 1 次，乾燥花按銷量補。</li>
+				<li>美感維持： &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+
+					<ul>
+						<li>花桶乾淨、花材不擠。</li>
+						<li><span class="highlight-text">每週更換「主題⾊調」</span>，靠氛圍吸引回客。</li>
+					</ul>
+				</li>
+				<li>合法流程： 申請營業登記（花卉零售）、開通多元⽀付。</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide5" class="slide-checkbox">
+		<label for="slide5" class="slide-header">
+			5：殺⼿級⾏銷策略 (The Conversion)
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>A. 視覺策略：精品＋親切感</h2>
+
+			<ul>
+				<li>IG 拍照核⼼： 亮光黃、⽩牆、透明材質折射、畫⾯乾淨。</li>
+				<li>⽬標 讓花束看起來「比⼀般花店更⾼級」，⾃帶 IG 擴散性。</li>
+				<li>Google Map： <span class="highlight-text">必做，90% 新客來源</span>。</li>
+				<li>Threads 更新花況、愛情語錄、儀式感照片。</li>
+			</ul>
+
+			<h2>B. 文案打法：直球攻⼼</h2>
+
+			<ul>
+				<li>鎖定**男性客群** (最強變現)：
+
+					<ul>
+						<li>放⼀區「道歉專區」：「她⽣氣時，你只有⼀束花的距離。」</li>
+						<li>貼文模板：「她說想收到花，你就給她。」、「紀念⽇忘了？這束救你。」</li>
+					</ul>
+				</li>
+				<li>社區合作： 寄賣 3&ndash;5 束⾄咖啡店/早餐店，創造曝光。</li>
+				<li>Google Map： 90% 新客來源，必須經營。</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="slide-section">
+		<input type="checkbox" id="slide6" class="slide-checkbox">
+		<label for="slide6" class="slide-header">
+			6：財務與執⾏摘要
+			<span class="toggle-icon">&gt;</span>
+		</label>
+		<div class="slide-content">
+
+			<h2>A. 財務⽬標 (⽑利率)</h2>
+
+			<table>
+				<thead>
+					<tr>
+						<th>產品線</th>
+						<th>⽬標⽑利率</th>
+						<th>關鍵控制點</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>香皂花</td>
+						<td>45% - 55%</td>
+						<td>每⽇損耗、精準補貨</td>
+					</tr>
+					<tr>
+						<td>永⽣花</td>
+						<td>60% - 75%</td>
+						<td>批量採購、⾼效⼆次加⼯</td>
+					</tr>
+					<tr>
+						<td>節⽇</td>
+						<td>100% (正常)</td>
+						<td>提前 14 天預購，不壓庫存</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2>B. 營收預估 (⽉營業額)</h2>
+
+			<ul>
+				<li>保守預估： <span class="highlight-text">$34,000 - $78,000</span></li>
+				<li>進階預估 (好地段)： <span class="highlight-text">$90,000 - $150,000</span></li>
+			</ul>
+
+			<h2>C. 開店 SOP 重點</h2>
+
+			<ul>
+				<li>前期 (1&ndash;2 週)： 找地點簽約、找設備商、規劃裝潢、打版 LOGO。</li>
+				<li>開幕前 (1 週)： 進設備測試、建立 IG/Google Map、拍花束樣本、進少量花材。</li>
+				<li>營運中： 每週兩次盤點、每⽉計算損耗、節⽇提前三週備貨。</li>
+			</ul>
+		</div>
+	</section>
+
+	<div class="summary-box">
+		🌟 總結⼀句話：
+		<br> 無⼈花店的成功：比誰
+		<br> &nbsp; &nbsp; &nbsp; &nbsp;「補得快、補得準、擺得美 &nbsp; &nbsp;</div>
+
+</div>
