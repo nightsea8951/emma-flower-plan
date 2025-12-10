@@ -1,378 +1,463 @@
-<meta charset="UTF-8">
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨境電商定價試算器 (具備自動記憶功能)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .input-group {
+            position: relative;
+        }
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 0.25rem;
+        }
+        .input-field {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            width: 100%;
+            transition: all 0.2s;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+        /* Mode Switcher Styles */
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .mode-btn.active {
+            background-color: #1e3a8a;
+            color: white;
+            box-shadow: 0 2px 4px rgba(30, 58, 138, 0.3);
+        }
+        .mode-btn.inactive {
+            color: #64748b;
+            background-color: transparent;
+        }
+        .mode-btn.inactive:hover {
+            background-color: #f1f5f9;
+        }
+        
+        details > summary {
+            list-style: none;
+            cursor: pointer;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        .hidden-anim {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .show-anim {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex items-center justify-center p-4">
 
+    <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側：參數設定 (佔 4 等份) -->
+        <div class="col-span-1 lg:col-span-4 space-y-4">
+            
+            <!-- 模式切換按鈕 -->
+            <div class="card p-1.5 flex bg-white sticky top-0 z-10">
+                <div id="btnPhysical" class="mode-btn active" onclick="setMode('physical')">
+                    📦 實體商品
+                </div>
+                <div id="btnVirtual" class="mode-btn inactive" onclick="setMode('virtual')">
+                    ☁️ 虛擬商品
+                </div>
+            </div>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-	/* 藍調沉穩風 Blue & Calm Style */
-	
-	:root {
-		--main-bg-color: #f4f7f9; --container-bg-color: #ffffff; --primary-color: #2c3e50;/* 藍調主色 - 深海藍 */
-		--secondary-color: #3498db;/* 點綴色 - 天空藍 */
-		--text-color: #333333; --border-color: #bdc3c7; --accent-light: #ecf0f1; --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	}
-	/* 重置和基礎樣式 */
-	
-	body {
-		font-family: var(--font-family); line-height: 1.8; color: var(--text-color); background-color: var(--main-bg-color); padding: 20px;
-	}
-	
-	.container {
-		max-width: 900px; margin: 0 auto; background-color: var(--container-bg-color); padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	}
-	
-	h1 {
-		color: var(--primary-color); text-align: center; border-bottom: 3px solid var(--secondary-color); padding-bottom: 10px; margin-bottom: 30px;
-	}
-	/*
-         * 展開收合 (Accordion) 核心 CSS
-         * 利用 input:checked + label + content 結構實現
-        */
-	
-	.slide-section {
-		margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;
-		/* 修正：相對定位，確保內容和標題在正確位置 */
-		position: relative;
-	}
-	/* 隱藏用於控制的 checkbox */
-	
-	.slide-checkbox {
-		position: absolute; opacity: 0; pointer-events: none;/* 讓其不佔據空間，但能被 label 觸發 */
-	}
-	/* 標題 (Label) 樣式 - 作為可點擊的按鈕 */
-	
-	.slide-header {
-		background-color: var(--primary-color); color: white; padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 1.2em; font-weight: bold; transition: background-color 0.3s;
-	}
-	/* 箭頭/圖標樣式 */
-	
-	.slide-header .toggle-icon {
-		font-size: 1.5em; margin-left: 10px; transition: transform 0.3s; transform: rotate(0deg);/* 預設向右 (收合) */
-	}
-	/* 內容區塊 - 預設隱藏 (高度為 0) */
-	
-	.slide-content {
-		max-height: 0;/* 核心收合機制 */
-		overflow: hidden; transition: max-height 0.5s ease-in-out, padding 0.5s; padding: 0 20px; background-color: var(--container-bg-color); border-top: 1px solid var(--border-color);
-	}
-	/* 當 checkbox 被選中時 (展開狀態) */
-	
-	.slide-checkbox:checked + .slide-header {
-		background-color: var(--primary-color);
-	}
-	/* 當 checkbox 被選中時：內容區展開 */
-	
-	.slide-checkbox:checked + .slide-header + .slide-content {
-		max-height: 1000px;/* 給一個足夠大的高度值來展開內容 */
-		padding: 20px;/* 展開後恢復內邊距 */
-		border-top-color: transparent;
-	}
-	/* 當 checkbox 被選中時：圖標旋轉 (向下或垂直) */
-	
-	.slide-checkbox:checked + .slide-header .toggle-icon {
-		transform: rotate(90deg);
-	}
-	/* 內容樣式 */
-	
-	h2 {
-		color: var(--secondary-color); border-left: 5px solid var(--secondary-color); padding-left: 10px; margin-top: 20px;
-	}
-	
-	ul {
-		list-style: none; padding-left: 0;
-	}
-	
-	ul li {
-		margin-bottom: 10px; padding-left: 20px; position: relative;
-	}
-	
-	ul li::before {
-		content: '💠'; color: var(--secondary-color); position: absolute; left: 0;
-	}
-	
-	table {
-		width: 100%; border-collapse: collapse; margin: 15px 0; background-color: var(--accent-light); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-	}
-	
-	th,
-	td {
-		border: 1px solid var(--border-color); padding: 12px; text-align: left;
-	}
-	
-	th {
-		background-color: var(--secondary-color); color: white; font-weight: bold; text-transform: uppercase;
-	}
-	
-	tr:nth-child(even) {
-		background-color: #f9f9f9;
-	}
-	
-	.highlight-text {
-		color: var(--secondary-color); font-weight: bold;
-	}
-	
-	.summary-box {
-		background-color: #ecf0f1; padding: 20px; border-radius: 6px; text-align: center; font-size: 1.3em; font-weight: bold; color: var(--primary-color); margin-top: 30px; border: 2px dashed var(--secondary-color);
-	}
+            <!-- 區塊 1：成本設定 (預設開啟) -->
+            <details class="card" open>
+                <summary class="p-4 flex items-center justify-between font-bold text-slate-800 border-b border-slate-100 hover:bg-slate-50 rounded-t-xl transition-colors">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-5 bg-blue-900 rounded-full"></span>
+                        進貨成本設定
+                    </div>
+                    <svg class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="p-5 space-y-4">
+                    <div class="input-group">
+                        <label class="input-label">人民幣匯率</label>
+                        <input type="number" id="exchangeRate" value="4.5" step="0.01" class="input-field" oninput="calculate()">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="input-group">
+                            <label class="input-label">商品單價 (RMB)</label>
+                            <input type="number" id="costRMB" value="100" class="input-field" oninput="calculate()">
+                        </div>
+                        <div class="input-group" id="shippingGroup">
+                            <label class="input-label">單件運費 (RMB)</label>
+                            <input type="number" id="shippingRMB" value="9" class="input-field" oninput="calculate()">
+                        </div>
+                    </div>
+                    
+                    <!-- 虛擬商品提示 (切換時顯示) -->
+                    <div id="virtualHint" class="hidden text-xs text-slate-400 text-center py-2 bg-slate-50 rounded">
+                        * 虛擬商品模式：已自動忽略運費成本
+                    </div>
 
-</style>
+                    <div class="p-3 bg-blue-50 rounded text-xs text-blue-800">
+                        <div class="flex justify-between font-bold">
+                            <span>預估台幣成本：</span>
+                            <span id="costTWDPreview">NT$ 491</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
 
+            <!-- 區塊 2：利潤與平台設定 -->
+            <details class="card" open>
+                <summary class="p-4 flex items-center justify-between font-bold text-slate-800 border-b border-slate-100 hover:bg-slate-50 rounded-t-xl transition-colors">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-5 bg-emerald-600 rounded-full"></span>
+                        平台與利潤
+                    </div>
+                    <svg class="w-5 h-5 text-slate-400 transform transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="p-5 space-y-4">
+                    <div class="input-group">
+                        <label class="input-label flex justify-between">
+                            蝦皮手續費抽成
+                            <span class="text-xs text-slate-400">% 佔售價</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="platformFeePercent" value="15" class="input-field pr-8" oninput="calculate()">
+                            <span class="absolute right-3 top-2.5 text-slate-400">%</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label flex justify-between">
+                            發票/稅金
+                            <span class="text-xs text-slate-400">% 佔售價</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="taxPercent" value="5" class="input-field pr-8" oninput="calculate()">
+                            <span class="absolute right-3 top-2.5 text-slate-400">%</span>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label flex justify-between text-blue-800 font-bold">
+                            目標淨利潤率
+                            <span class="text-xs text-blue-300">% 佔售價</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="profitPercent" value="15" class="input-field pr-8 border-blue-200 bg-blue-50" oninput="calculate()">
+                            <span class="absolute right-3 top-2.5 text-blue-400">%</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
 
+        <!-- 右側：計算結果 (佔 8 等份) -->
+        <div class="col-span-1 lg:col-span-8 space-y-6">
+            
+            <!-- 核心結果卡片 -->
+            <div class="card bg-slate-800 text-white p-6 md:p-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <div>
+                        <h2 class="text-slate-300 text-sm font-medium mb-1">建議販售價格 (台幣)</h2>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-bold tracking-tight text-white" id="finalPrice">0</span>
+                            <span class="text-lg text-slate-400">TWD</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 md:mt-0 text-right">
+                        <div class="text-emerald-400 font-bold text-xl">+ NT$ <span id="profitAmount">0</span></div>
+                        <div class="text-slate-400 text-sm">單件淨利</div>
+                    </div>
+                </div>
 
-<div class="container">
+                <!-- 簡易進度條視覺化 -->
+                <div class="w-full h-3 bg-slate-700 rounded-full overflow-hidden flex">
+                    <div id="barCost" class="h-full bg-slate-500" style="width: 50%"></div>
+                    <div id="barFee" class="h-full bg-orange-400" style="width: 25%"></div>
+                    <div id="barProfit" class="h-full bg-emerald-500" style="width: 25%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-400 mt-2">
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-slate-500"></div> 成本</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-orange-400"></div> 平台+稅</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-500"></div> 淨利</div>
+                </div>
+            </div>
 
-	<h1>無人花店完整營運企劃書 | Emma Chen</h1>
+            <!-- 詳細損益表 -->
+            <div class="card p-6">
+                <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    詳細損益分析
+                </h3>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3">項目</th>
+                                <th class="px-4 py-3">計算方式</th>
+                                <th class="px-4 py-3 text-right">金額 (TWD)</th>
+                                <th class="px-4 py-3 text-right">佔比</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <!-- 收入 -->
+                            <tr class="font-bold bg-blue-50/50">
+                                <td class="px-4 py-3 text-blue-900">商品售價</td>
+                                <td class="px-4 py-3 text-slate-500">-</td>
+                                <td class="px-4 py-3 text-right text-blue-900" id="tablePrice">0</td>
+                                <td class="px-4 py-3 text-right text-slate-500">100%</td>
+                            </tr>
+                            
+                            <!-- 成本 -->
+                            <tr>
+                                <td class="px-4 py-3 text-slate-700">商品成本</td>
+                                <td class="px-4 py-3 text-slate-400 text-xs">RMB <span id="tCostRMB">100</span> x 匯率</td>
+                                <td class="px-4 py-3 text-right text-red-600" id="tableItemCost">0</td>
+                                <td class="px-4 py-3 text-right text-slate-400" id="pctItemCost">--</td>
+                            </tr>
+                            <!-- 運費行 (虛擬商品會隱藏或顯示0) -->
+                            <tr id="tableRowShip">
+                                <td class="px-4 py-3 text-slate-700">運費成本</td>
+                                <td class="px-4 py-3 text-slate-400 text-xs">RMB <span id="tShipRMB">9</span> x 匯率</td>
+                                <td class="px-4 py-3 text-right text-red-600" id="tableShipCost">0</td>
+                                <td class="px-4 py-3 text-right text-slate-400" id="pctShipCost">--</td>
+                            </tr>
+                            
+                            <!-- 費用 -->
+                            <tr>
+                                <td class="px-4 py-3 text-slate-700">蝦皮手續費</td>
+                                <td class="px-4 py-3 text-slate-400 text-xs">售價 x <span id="tPlatformPct">15</span>%</td>
+                                <td class="px-4 py-3 text-right text-orange-600" id="tablePlatformFee">0</td>
+                                <td class="px-4 py-3 text-right text-slate-400" id="pctPlatformFee">15%</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 text-slate-700">發票稅金</td>
+                                <td class="px-4 py-3 text-slate-400 text-xs">售價 x <span id="tTaxPct">5</span>%</td>
+                                <td class="px-4 py-3 text-right text-orange-600" id="tableTaxFee">0</td>
+                                <td class="px-4 py-3 text-right text-slate-400" id="pctTaxFee">5%</td>
+                            </tr>
 
-	<section class="slide-section">
-		<input type="checkbox" id="slide1" class="slide-checkbox">
-		<label for="slide1" class="slide-header">
-			1：核⼼戰略與定位 (The Core Strategy)
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
+                            <!-- 利潤 -->
+                            <tr class="font-bold bg-emerald-50">
+                                <td class="px-4 py-3 text-emerald-800">淨利潤</td>
+                                <td class="px-4 py-3 text-emerald-600 text-xs">售價 - 總支出</td>
+                                <td class="px-4 py-3 text-right text-emerald-600" id="tableProfit">0</td>
+                                <td class="px-4 py-3 text-right text-emerald-600" id="pctProfit">15%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 p-4 bg-slate-100 rounded text-xs text-slate-500 leading-relaxed">
+                    <strong>💡 計算公式說明：</strong><br>
+                    此計算機使用「利潤率回推法」，確保您的利潤是佔「最終售價」的 15%。<br>
+                    公式：<code>售價 = (商品成本 + 運費成本) / (1 - (手續費% + 稅金% + 利潤%))</code>
+                </div>
+            </div>
+        </div>
+    </div>
 
-			<h2>💡 策略願景</h2>
+    <script>
+        let currentMode = 'physical'; // physical or virtual
 
-			<ul>
-				<li>不賣花，賣「被愛的儀式」</li>
-			</ul>
+        // 儲存設定到 LocalStorage
+        function saveToLocal() {
+            const data = {
+                mode: currentMode,
+                exchangeRate: document.getElementById('exchangeRate').value,
+                costRMB: document.getElementById('costRMB').value,
+                shippingRMB: document.getElementById('shippingRMB').value,
+                platformFeePercent: document.getElementById('platformFeePercent').value,
+                taxPercent: document.getElementById('taxPercent').value,
+                profitPercent: document.getElementById('profitPercent').value
+            };
+            localStorage.setItem('shopeeCalcData_v2', JSON.stringify(data));
+        }
 
-			<h2>🎯 品牌定位</h2>
+        // 從 LocalStorage 讀取設定
+        function loadFromLocal() {
+            const saved = localStorage.getItem('shopeeCalcData_v2');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    document.getElementById('exchangeRate').value = data.exchangeRate || 4.5;
+                    document.getElementById('costRMB').value = data.costRMB || 100;
+                    document.getElementById('shippingRMB').value = data.shippingRMB || 9;
+                    document.getElementById('platformFeePercent').value = data.platformFeePercent || 15;
+                    document.getElementById('taxPercent').value = data.taxPercent || 5;
+                    document.getElementById('profitPercent').value = data.profitPercent || 15;
+                    
+                    if (data.mode) {
+                        setMode(data.mode, false); // false = 不要再次重複計算，稍後統一算
+                    }
+                } catch (e) {
+                    console.error("讀取儲存資料失敗", e);
+                }
+            }
+            calculate();
+        }
 
-			<ul>
-				<li>24 ⼩時無⼈化、**⾼質感**、科技精品花禮站。</li>
-			</ul>
+        function setMode(mode, doCalculate = true) {
+            currentMode = mode;
+            
+            const btnPhys = document.getElementById('btnPhysical');
+            const btnVirt = document.getElementById('btnVirtual');
+            const shipGroup = document.getElementById('shippingGroup');
+            const rowShip = document.getElementById('tableRowShip');
+            const virtHint = document.getElementById('virtualHint');
 
-			<h2>核⼼差異化</h2>
+            if (mode === 'physical') {
+                btnPhys.className = 'mode-btn active';
+                btnVirt.className = 'mode-btn inactive';
+                shipGroup.style.display = 'block';
+                rowShip.style.display = 'table-row';
+                virtHint.classList.add('hidden');
+            } else {
+                btnPhys.className = 'mode-btn inactive';
+                btnVirt.className = 'mode-btn active';
+                shipGroup.style.display = 'none';
+                rowShip.style.display = 'none';
+                virtHint.classList.remove('hidden');
+            }
+            if (doCalculate) calculate();
+        }
 
-			<ul>
-				<li>⾼利潤：主推永⽣花/乾燥花，降低鮮花損耗風險。</li>
-				<li>⾼效率：全⾃動結帳，滿⾜救急與非營業時段需求。</li>
-				<li>⾼流量：透過視覺與文案，將店鋪變成 <span class="highlight-text">IG 打卡點</span>。</li>
-			</ul>
-		</div>
-	</section>
+        // 格式化數字 (千分位)
+        function formatMoney(num) {
+            return num.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
 
-	<section class="slide-section">
-		<input type="checkbox" id="slide2" class="slide-checkbox">
-		<label for="slide2" class="slide-header">
-			2：產品架構與定價模型
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
+        function calculate() {
+            // 1. 獲取輸入
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 0;
+            const costRMB = parseFloat(document.getElementById('costRMB').value) || 0;
+            
+            // 根據模式決定運費
+            let shippingRMB = 0;
+            if (currentMode === 'physical') {
+                shippingRMB = parseFloat(document.getElementById('shippingRMB').value) || 0;
+            } else {
+                shippingRMB = 0;
+            }
+            
+            const platformFeePct = parseFloat(document.getElementById('platformFeePercent').value) || 0;
+            const taxPct = parseFloat(document.getElementById('taxPercent').value) || 0;
+            const profitPct = parseFloat(document.getElementById('profitPercent').value) || 0;
 
-			<h2>A. 商品線配置 (混合模式最穩定)</h2>
+            // 2. 計算基礎成本 (TWD)
+            const itemCostTWD = costRMB * exchangeRate;
+            const shippingCostTWD = shippingRMB * exchangeRate;
+            const totalCostTWD = itemCostTWD + shippingCostTWD;
 
-			<table>
-				<thead>
-					<tr>
-						<th>產品類型</th>
-						<th>功能定位</th>
-						<th>建議價格帶</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>鮮花⼩束</td>
-						<td>吸引客流，每⽇剛需</td>
-						<td>$199 - $399 (低單價)</td>
-					</tr>
-					<tr>
-						<td>永⽣/香皂/乾燥花/娃娃花</td>
-						<td>賺取⽑利 (60-75%)，不怕壞</td>
-						<td>$899 - $1599 (中⾼單價)</td>
-					</tr>
-					<tr>
-						<td>節慶限定花盒/⼤客製花束</td>
-						<td>拉⾼客單價，預購制</td>
-						<td>$1499 - $2500 (⾼單價)</td>
-					</tr>
-				</tbody>
-			</table>
+            // 預覽小計
+            document.getElementById('costTWDPreview').innerText = "NT$ " + formatMoney(totalCostTWD);
 
-			<h2>B. 價格策略 (看了就買的⼼理學)</h2>
+            // 3. 計算目標售價
+            // 公式：售價 = 成本 / (1 - 所有百分比總和)
+            const totalDeductionRate = (platformFeePct + taxPct + profitPct) / 100;
+            
+            let finalPrice = 0;
+            if (totalDeductionRate < 1) {
+                finalPrice = totalCostTWD / (1 - totalDeductionRate);
+            } else {
+                finalPrice = 0; 
+            }
 
-			<ul>
-				<li>無⼈店缺乏說服⼒，價格必須「直覺化」。</li>
-				<li>主⼒精品款建議使⽤<span class="highlight-text">整數標價</span>（如 $600、$1300），營造質感氛圍。</li>
-				<li>低單價維持 <span class="highlight-text">$x99 尾數</span>，吸引衝動購買。</li>
-			</ul>
-		</div>
-	</section>
+            // 4. 計算各項金額
+            const platformFee = finalPrice * (platformFeePct / 100);
+            const taxFee = finalPrice * (taxPct / 100);
+            const profitAmount = finalPrice * (profitPct / 100); 
+            
+            // 5. 更新 UI - 大數字
+            document.getElementById('finalPrice').innerText = formatMoney(finalPrice);
+            document.getElementById('profitAmount').innerText = formatMoney(profitAmount);
 
-	<section class="slide-section">
-		<input type="checkbox" id="slide3" class="slide-checkbox">
-		<label for="slide3" class="slide-header">
-			3：地點與硬體配置 (The Setup)
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
+            // 6. 更新 UI - 表格數值
+            document.getElementById('tablePrice').innerText = formatMoney(finalPrice);
+            
+            document.getElementById('tCostRMB').innerText = costRMB;
+            document.getElementById('tableItemCost').innerText = "-" + formatMoney(itemCostTWD);
+            document.getElementById('pctItemCost').innerText = ((itemCostTWD / finalPrice) * 100).toFixed(1) + "%";
 
-			<h2>A. 關鍵選址標準 (⼈流 &gt; 租⾦)</h2>
+            // 運費表格列
+            document.getElementById('tShipRMB').innerText = shippingRMB;
+            document.getElementById('tableShipCost').innerText = "-" + formatMoney(shippingCostTWD);
+            if (finalPrice > 0) {
+                 document.getElementById('pctShipCost').innerText = ((shippingCostTWD / finalPrice) * 100).toFixed(1) + "%";
+            } else {
+                 document.getElementById('pctShipCost').innerText = "0%";
+            }
+           
 
-			<ul>
-				<li>地點優先順序： 捷運出⼝、醫院附近、咖啡店聚集區、學⽣區。</li>
-				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-				<li>空間要求： 2&ndash;6 坪即可，重點是「醒⽬性」與「⼈流」。</li>
-				&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-				<li>租⾦⽬標： 鎖定在 $15,000 &ndash; $30,000/⽉。</li>
-			</ul>
+            document.getElementById('tPlatformPct').innerText = platformFeePct;
+            document.getElementById('tablePlatformFee').innerText = "-" + formatMoney(platformFee);
+            document.getElementById('pctPlatformFee').innerText = platformFeePct + "%";
 
-			<h2>B. 無⼈店必備硬體 (⼀次性投資 $10&ndash;$20萬)</h2>
+            document.getElementById('tTaxPct').innerText = taxPct;
+            document.getElementById('tableTaxFee').innerText = "-" + formatMoney(taxFee);
+            document.getElementById('pctTaxFee').innerText = taxPct + "%";
 
-			<table>
-				<thead>
-					<tr>
-						<th>設備項⽬</th>
-						<th>功能⽬的</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>智慧⾨禁</td>
-						<td>**實名制管制**（Line 綁定），防盜第⼀線。</td>
-					</tr>
-					<tr>
-						<td>多⾓度監視器</td>
-						<td>店內外多點覆蓋，監控盜損率。</td>
-					</tr>
-					<tr>
-						<td>POS / ⾃助結帳</td>
-						<td>⽀援多元⽀付（LINE Pay/信⽤卡/街⼝）。</td>
-					</tr>
-					<tr>
-						<td>防盜系統</td>
-						<td>必要的安全投資，降低 8&ndash;12% 盜損風險。</td>
-					</tr>
-					<tr>
-						<td>恆溫空調/除濕</td>
-						<td><span class="highlight-text">乾燥花保鮮關鍵</span>。</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</section>
+            document.getElementById('tableProfit').innerText = formatMoney(profitAmount);
+            document.getElementById('pctProfit').innerText = profitPct + "%";
 
-	<section class="slide-section">
-		<input type="checkbox" id="slide4" class="slide-checkbox">
-		<label for="slide4" class="slide-header">
-			4：供應鏈與營運邏輯 (Maintenance Focus)
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
+            // 7. 更新進度條寬度
+            const totalCostPct = ((totalCostTWD / finalPrice) * 100);
+            const feeAndTaxPct = platformFeePct + taxPct;
+            
+            document.getElementById('barCost').style.width = totalCostPct + "%";
+            document.getElementById('barFee').style.width = feeAndTaxPct + "%";
+            document.getElementById('barProfit').style.width = profitPct + "%";
 
-			<h2>A. 供應鏈組合</h2>
+            // 8. 每次計算完都儲存
+            saveToLocal();
+        }
 
-			<ul>
-				<li>乾燥/永⽣花： 內湖花市（穩定主⼒） + 專業中盤配送。</li>
-				<li>永⽣/香皂/娃娃花： 淘寶批貨（低成本、多款式），搭配「換緞帶、加 LOGO、⾃製⼩卡」進⾏<span class="highlight-text">⼆次品牌化</span>。</li>
-			</ul>
-
-			<h2>B. 營運維護 SOP (比誰補得快、擺得美)</h2>
-
-			<ul>
-				<li>補貨頻率： 鮮花每天 1 次，乾燥花按銷量補。</li>
-				<li>美感維持： &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-
-					<ul>
-						<li>花桶乾淨、花材不擠。</li>
-						<li><span class="highlight-text">每週更換「主題⾊調」</span>，靠氛圍吸引回客。</li>
-					</ul>
-				</li>
-				<li>合法流程： 申請營業登記（花卉零售）、開通多元⽀付。</li>
-			</ul>
-		</div>
-	</section>
-
-	<section class="slide-section">
-		<input type="checkbox" id="slide5" class="slide-checkbox">
-		<label for="slide5" class="slide-header">
-			5：殺⼿級⾏銷策略 (The Conversion)
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
-
-			<h2>A. 視覺策略：精品＋親切感</h2>
-
-			<ul>
-				<li>IG 拍照核⼼： 亮光黃、⽩牆、透明材質折射、畫⾯乾淨。</li>
-				<li>⽬標 讓花束看起來「比⼀般花店更⾼級」，⾃帶 IG 擴散性。</li>
-				<li>Google Map： <span class="highlight-text">必做，90% 新客來源</span>。</li>
-				<li>Threads 更新花況、愛情語錄、儀式感照片。</li>
-			</ul>
-
-			<h2>B. 文案打法：直球攻⼼</h2>
-
-			<ul>
-				<li>鎖定男性客群 (最強變現)：
-
-					<ul>
-						<li>放⼀區「道歉專區」：「她⽣氣時，你只有⼀束花的距離。」</li>
-						<li>貼文模板：「她說想收到花，你就給她。」、「紀念⽇忘了？這束救你。」</li>
-					</ul>
-				</li>
-				<li>社區合作： 寄賣 3&ndash;5 束⾄咖啡店/早餐店，創造曝光。</li>
-				<li>Google Map： 90% 新客來源，必須經營。</li>
-			</ul>
-		</div>
-	</section>
-
-	<section class="slide-section">
-		<input type="checkbox" id="slide6" class="slide-checkbox">
-		<label for="slide6" class="slide-header">
-			6：財務與執⾏摘要
-			<span class="toggle-icon">&gt;</span>
-		</label>
-		<div class="slide-content">
-
-			<h2>A. 財務⽬標 (⽑利率)</h2>
-
-			<table>
-				<thead>
-					<tr>
-						<th>產品線</th>
-						<th>⽬標⽑利率</th>
-						<th>關鍵控制點</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td>香皂花</td>
-						<td>45% - 55%</td>
-						<td>每⽇損耗、精準補貨</td>
-					</tr>
-					<tr>
-						<td>永⽣花</td>
-						<td>60% - 75%</td>
-						<td>批量採購、⾼效⼆次加⼯</td>
-					</tr>
-					<tr>
-						<td>節⽇</td>
-						<td>100% (正常)</td>
-						<td>提前 14 天預購，不壓庫存</td>
-					</tr>
-				</tbody>
-			</table>
-
-			<h2>B. 營收預估 (⽉營業額)</h2>
-
-			<ul>
-				<li>保守預估： <span class="highlight-text">$34,000 - $78,000</span></li>
-				<li>進階預估 (好地段)： <span class="highlight-text">$90,000 - $150,000</span></li>
-			</ul>
-
-			<h2>C. 開店 SOP 重點</h2>
-
-			<ul>
-				<li>前期 (1&ndash;2 週)： 找地點簽約、找設備商、規劃裝潢、打版 LOGO。</li>
-				<li>開幕前 (1 週)： 進設備測試、建立 IG/Google Map、拍花束樣本、進少量花材。</li>
-				<li>營運中： 每週兩次盤點、每⽉計算損耗、節⽇提前三週備貨。</li>
-			</ul>
-		</div>
-	</section>
-
-	<div class="summary-box">
-		🌟 總結⼀句話：
-		<br> 無⼈花店的成功：比誰
-		<br> &nbsp; &nbsp; &nbsp; &nbsp;「補得快、補得準、擺得美 &nbsp; &nbsp;</div>
-
-</div>
+        // 初始化：先讀取存檔，再計算
+        loadFromLocal();
+        
+        // 監聽 Details 展開行為 (選用 UI 增強)
+        document.querySelectorAll("details").forEach((detail) => {
+            detail.addEventListener("toggle", (e) => {
+                const icon = detail.querySelector("svg");
+                if (detail.open) {
+                    icon.style.transform = "rotate(180deg)";
+                } else {
+                    icon.style.transform = "rotate(0deg)";
+                }
+            });
+        });
+    </script>
+</body>
+</html>
